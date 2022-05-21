@@ -1,52 +1,66 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from "react";
 import './App.css';
+import SearchIcon from "./search.svg";
+import MovieCard from './MovieCard';
 
-const Person = (props) => {
-  return (
-    <>
-      <h1>Name: {props.name}</h1>
-      <h2>Last name: {props.lastName}</h2>
-      <h3>Age: {props.age}</h3>
-    </>
-  )
-}
+const API_URL = 'http://www.omdbapi.com?apikey=e059286d';
 
 const App = () => {
-  const name = 'kelli';
-  const isNull = null;
+  const [movies, setMovies] = useState([]);
+  const [searchTerm, setSearchTerm] = useState([]);
 
-  const [counter, setCounter] = useState(0);
-  useEffect(() => {
-    // happening to render
-    alert("You've changed the counter to "+counter);
-    //setCounter(100);
-  }, [counter])
+  const searchMovies = async (title) => {
+    try{
+      const response = await fetch(`${API_URL}&s=${title}`);
+      const data = await response.json();
 
-  // JSX
-  return (
-    <div className="App">
-      hello world! I'm {name}, this is my first react app!!
-
-      {
-        isNull ?
-          (
-            <> not null </>
-          )
-          :
-          (
-            <><h1>null</h1>
-              <p>ha</p></>
-          )
+      if(data.Response ==='True'){
+        setMovies(data.Search);
+      }else{
+        alert(data.Error)
       }
+    }catch(err){
+      console.log(err);
+    }
+  }
 
-      <Person name="Kelli" lastName="Jung" age={28} />
-      <Person name="John" lastName="Doe" age={24} />
+  useEffect(() => {
+    searchMovies('Spiderman');
+  }, []);
 
-      <button onClick={() => setCounter((prevCounter) => prevCounter - 1)}>-</button>
-      <h1>{counter}</h1>
-      <button onClick={() => setCounter((prevCounter) => prevCounter + 1)}>+</button>
+  return (
+    <div className="app">
+      <h1>MovieLand</h1>
+
+      <div className="search">
+        <input
+          placeholder="Search for movies"
+          value={searchTerm}
+          onChange={({target}) => setSearchTerm(target.value)}
+        />
+        <img
+          src={SearchIcon}
+          alt="search"
+          onClick={() => searchMovies(searchTerm)}
+        />
+      </div>
+
+      <div className="container">
+        {
+          movies.length > 0 ?
+            (
+              movies.map((movie) => (
+                <MovieCard movie={movie} key={movie.imdbID}/>
+              ))
+            ) : (
+              <div className="empty">
+                <h2>No movies found</h2>
+              </div>
+            )
+        }
+      </div>
     </div>
-  );
+  )
 }
 
 export default App;
